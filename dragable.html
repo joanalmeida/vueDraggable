@@ -1,0 +1,56 @@
+<!DOCTYPE HTML>
+<html lang="en-US">
+<head>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+    <title>Dragable</title>
+</head>
+<body>
+    <!--
+    <div class="container">
+        <div class="row">
+            <div class="col-md-10 dropable">
+                <h4>Template Section</h4>
+                <div class="col-md-4" style="background-color: #DCDCDC; min-height: 50px;"></div>
+            </div>
+            <div class="col-md-2">
+                <h4>Components</h4>
+                <input class="component dragable" type="text" name="">
+                <select style="width: 100%;"></select>
+            </div>
+        </div>
+    </div>
+    -->
+    <!--div id="dropable" style="resize: both; width: 300px; background-color: grey; overflow: auto;"></div-->
+    <div class="container">
+        <div class="row">
+            <div class="col-md-10">
+                <div id="dropable" class="col-md-4" ondragover="allowDrop(event)" ondrop="drop(event)" style="resize: both; overflow: auto; min-height: 40px; border: 1px solid;"></div>
+                <div id="dropable2" class="col-md-4" ondragover="allowDrop(event)" ondrop="drop(event)" style="resize: both; overflow: auto; min-height: 40px; border: 1px solid;"></div>
+                <div id="dropable3" class="col-md-4" ondragover="allowDrop(event)" ondrop="drop(event)" style="resize: both; overflow: auto; min-height: 40px; border: 1px solid;"></div>
+            </div>
+            <div class="col-md-2 pull-right">
+                <h4>Components</h4>
+                <input id="dragable-input" class="component dragable" type="text" ondragstart="drag(event)" draggable="true">
+                <select style="width: 100%;"></select>
+            </div>
+        </div>
+    </div>
+    <script>
+        function drag(ev) {
+            ev.dataTransfer.setData("text", ev.target.id);
+        }
+
+        function allowDrop(ev) {
+            ev.preventDefault();
+        }
+
+        function drop(ev) {
+            ev.preventDefault();
+            var data = ev.dataTransfer.getData("text");
+            var cln = document.getElementById(data).cloneNode();
+            ev.target.appendChild(cln);
+        }
+    </script>
+</body>
+</html>

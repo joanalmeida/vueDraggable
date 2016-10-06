@@ -1,0 +1,61 @@
+<!DOCTYPE HTML>
+<html lang="en-US">
+<head>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+    <title>Vue Drag n drop</title>
+</head>
+<body>
+    <div id="formTemplate">
+        <row-template :total-rows="rowAmount" :layout="layout" v-on:expand="expand"></row-template>
+    </div>
+
+    <template id="rowTemplate">
+        <div>
+            <div v-for="i in totalRows">
+                <div :id="i" v-on:click="expand(i)">This is a row of size {{ layout[i - 1] }}</div>
+            </div>
+        </div>
+    </template>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/vue/2.0.1/vue.js"></script>
+    <script>
+        var rowTemplate = {
+            props: ['totalRows', 'layout'],
+            template: '#rowTemplate',
+            methods: {
+                expand: function(index) {
+                    this.layout[index-1]++;
+                    this.$emit('expand', index);
+                }
+            }
+        };
+
+        var formTemp= new Vue({
+            el: '#formTemplate',
+            components: {
+                'row-template': rowTemplate
+            },
+            data: {
+                rowAmount: 2,
+                layout: [1, 1, 1]
+            },
+            methods: {
+                addRow: function() {
+                    this.rowAmount++;
+                },
+
+                removeRow: function() {
+                    this.rowAmount--;
+                },
+
+                expand: function(data) {
+                    //this.layout[data - 1]++;
+                    this.addRow();
+                    console.log(data);
+                }
+            }
+        });
+    </script>
+</body>
+</html>

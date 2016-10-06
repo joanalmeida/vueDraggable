@@ -1,0 +1,49 @@
+<!DOCTYPE HTML>
+<html lang="en-US">
+<head>
+    <meta charset="UTF-8">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+    <title>Vue Training</title>
+</head>
+<body>
+    <div class="container">
+        <div class="row">
+            <div class="col-md-6 col-md-offset-3">
+                <div id="app">
+                    <h1>Vue Training</h1>
+                    <form @submit.prevent="doNothing">
+                        <span class="error" v-show="!message">
+                            You must enter some text
+                        </span>
+
+                        <textarea v-model="message"></textarea>
+
+                        <button type="submit" v-show="message">
+                            Send Message
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!--script src="https://unpkg.com/vue@1.0.27/dist/vue.min.js"></script-->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/vue/1.0.28/vue.js"></script>
+    <!--script src="https://cdnjs.cloudflare.com/ajax/libs/vue/2.0.1/vue.js"></script-->
+
+    <script>
+        new Vue({
+            el: '#app',
+            data: {
+                message: ''
+            },
+
+            methods: {
+                doNothing: function() {
+                    alert("Dont bother dude");
+                }
+            }
+        });
+    </script>
+</body>
+</html>

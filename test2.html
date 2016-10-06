@@ -1,0 +1,73 @@
+<!DOCTYPE HTML>
+<html lang="en-US">
+<head>
+    <meta charset="UTF-8">
+    <title>Drag n drop</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+</head>
+<body>
+    <div id="formTemp">
+        <row-temp v-for="i in rows"></row-temp>
+    </div>
+
+    <template id="rowTemp">
+        <div>
+            <h3>RowTemp</h3>
+            <row-comp v-for="n in placeholders" :id="n" :tamanio="sizes[n-1]"></row-comp>
+        </div>
+    </template>
+
+    <template id="rowComp">
+        <div v-if="size > 0" v-on:click="expand">RowComp {{ id }}</div>
+    </template>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/vue/2.0.1/vue.js"></script>
+    <script>
+/*        Vue.component('row-comp', {
+            template: '#rowComp'
+        });
+
+        Vue.component('row-temp', {
+            template: '#rowTemp'
+        });*/
+
+        var rowcomp = {
+            template: '#rowComp',
+            props: ['id', 'tamanio'],
+            data: function() {
+                return {
+                    size: tamanio
+                }
+            },
+            methods: {
+                expand: function() {
+                    this.size++;
+                    //this.$emit('expand', id);
+                }
+            }
+        };
+
+        var rowtemp = {
+            template: '#rowTemp',
+            data: function() {
+                return {
+                    placeholders: 3,
+                    sizes: [1, 2, 3]
+                }
+            },
+            components: {
+                'row-comp': rowcomp
+            }
+        };
+
+        new Vue({
+            el: '#formTemp',
+            data: {
+                rows: 2
+            },
+            components: {
+                'row-temp': rowtemp
+            }
+        });
+    </script>
+</body>
+</html>

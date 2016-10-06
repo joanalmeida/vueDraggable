@@ -1,0 +1,24 @@
+<html>
+<head>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+</head>
+<body>
+    <div class="container">
+        <div class="row">
+            <div class="col-md-10">
+                <div id="dropable-div" class="col-md-4" style="min-height: 40px; border: 1px solid"></div>
+            </div>
+            <div class="col-md-2">
+                <input id="dragable-input" type="text">
+                <div id="test">Testing</test>
+            </div>
+        </div>
+    </div>
+    <script src="http://code.jquery.com/jquery-3.1.1.min.js"></script>
+    <script type="text/javascript" src="jquery-ui-1.12.1.custom/jquery-ui.js"></script>
+    <script type="text/javascript">
+        $('#test').draggable();
+        $('#dropable-div').droppable();
+    </script>
+</body>
+</html>
