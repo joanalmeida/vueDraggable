@@ -1,3 +1,4 @@
+<!-- http://stackoverflow.com/questions/34534151/passing-data-to-components-in-vue-js -->
 <!DOCTYPE HTML>
 <html lang="en-US">
 <head>
@@ -13,12 +14,12 @@
     <template id="rowTemp">
         <div>
             <h3>RowTemp</h3>
-            <row-comp v-for="n in placeholders" :id="n" :tamanio="sizes[n-1]"></row-comp>
+            <row-comp v-for="n in placeholders" :id="n" :size="sizes[n-1]"></row-comp>
         </div>
     </template>
 
     <template id="rowComp">
-        <div v-if="size > 0" v-on:click="expand">RowComp {{ id }}</div>
+        <div v-if="tamanio > 0" v-on:click="expand">RowComp {{ id }}</div>
     </template>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/vue/2.0.1/vue.js"></script>
     <script>
@@ -32,16 +33,26 @@
 
         var rowcomp = {
             template: '#rowComp',
-            props: ['id', 'tamanio'],
+            props: ['id', 'size'],
             data: function() {
                 return {
-                    size: tamanio
-                }
+                    tamanio: this.size
+                };
             },
             methods: {
                 expand: function() {
-                    this.size++;
-                    //this.$emit('expand', id);
+                    this.tamanio++;
+                    this.$emit('expand', this.id);
+                },
+                contract: function() {
+                    this.tamanio--;
+                }
+            },
+            events: {
+                contract: function(id) {
+                    if(id === this.id) {
+                        this.contract();
+                    }
                 }
             }
         };
@@ -56,6 +67,11 @@
             },
             components: {
                 'row-comp': rowcomp
+            },
+            events: {
+                expand: function(id) {
+                    this.$broadcast('contract', id+1);
+                }
             }
         };
 
