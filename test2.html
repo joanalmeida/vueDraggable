@@ -14,12 +14,12 @@
     <template id="rowTemp">
         <div>
             <h3>RowTemp</h3>
-            <row-comp v-for="n in placeholders" :id="n" :size="sizes[n-1]"></row-comp>
+            <row-comp v-for="n in placeholders" :id="n" :size="sizes[n-1]" :msg="msg" :test="test" v-on:expand="broadcastSizes"></row-comp>
         </div>
     </template>
 
     <template id="rowComp">
-        <div v-if="tamanio > 0" v-on:click="expand">RowComp {{ id }}</div>
+        <div v-if="tamanio > 0" v-on:click="expand">RowComp {{ test.comp1 }}</div>
     </template>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/vue/2.0.1/vue.js"></script>
     <script>
@@ -33,7 +33,7 @@
 
         var rowcomp = {
             template: '#rowComp',
-            props: ['id', 'size'],
+            props: ['id', 'size', 'msg', 'test'],
             data: function() {
                 return {
                     tamanio: this.size
@@ -41,18 +41,11 @@
             },
             methods: {
                 expand: function() {
-                    this.tamanio++;
+                    //this.tamanio++;
                     this.$emit('expand', this.id);
                 },
                 contract: function() {
                     this.tamanio--;
-                }
-            },
-            events: {
-                contract: function(id) {
-                    if(id === this.id) {
-                        this.contract();
-                    }
                 }
             }
         };
@@ -62,16 +55,27 @@
             data: function() {
                 return {
                     placeholders: 3,
-                    sizes: [1, 2, 3]
+                    sizes: [1, 2, 3],
+                    msg: "Shit boy",
+                    test: {
+                        comp1: 1,
+                        comp2: 2,
+                        comp3: 3
+                    }
+                }
+            },
+            methods: {
+                broadcastSizes: function(id) {
+                    this.test.comp1 = 5;
+                    //this.msg = id;
+                    //console.log(id);
+
+                    //this.sizes[id-1]++;
+                    //this.$emit('contract', id);
                 }
             },
             components: {
                 'row-comp': rowcomp
-            },
-            events: {
-                expand: function(id) {
-                    this.$broadcast('contract', id+1);
-                }
             }
         };
 
