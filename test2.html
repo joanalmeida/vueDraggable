@@ -7,45 +7,62 @@
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
 </head>
 <body>
-    <div id="formTemp">
-        <row-temp v-for="i in rows"></row-temp>
+    <div class="container">
+        <div class="row">
+            <div id="formTemp" class="col-md-10">
+                <row-temp v-for="i in rows"></row-temp>
+            </div>
+            <div class="col-md-2">
+                Html Components
+            </div>
+        </div>
     </div>
 
     <template id="rowTemp">
-        <div>
+        <div class="col-md-12">
             <h3>RowTemp</h3>
-            <row-comp v-for="n in placeholders" :id="n" :size="sizes[n-1]" :msg="msg" :test="test" v-on:expand="broadcastSizes"></row-comp>
+            <row-comp v-for="n in sizes.length" :id="n" :size="sizes[n-1]" v-on:expand="updateExpanded" v-on:contract="updateContracted"></row-comp>
         </div>
     </template>
 
     <template id="rowComp">
-        <div v-if="tamanio > 0" v-on:click="expand">RowComp {{ test.comp1 }}</div>
+        <div v-if="size.val > 0" v-bind:class="classSize">
+            <div class="panel panel-default">
+                <div class="panel-heading clearfix">
+                    RowComp {{ id }}
+                    <button v-if="size.showExpand" v-on:click="expand" class="pull-right btn btn-default">
+                        <span class="glyphicon glyphicon-arrow-right"></span>
+                    </button>
+                    <button v-on:click="contract" class="pull-right btn btn-default">
+                        <span class="glyphicon glyphicon-arrow-left"></span>
+                    </button>
+                </div>
+                <div class="panel-body">Drag items here</div>
+            </div>
+        </div>
     </template>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/vue/2.0.1/vue.js"></script>
     <script>
-/*        Vue.component('row-comp', {
-            template: '#rowComp'
-        });
-
-        Vue.component('row-temp', {
-            template: '#rowTemp'
-        });*/
-
         var rowcomp = {
             template: '#rowComp',
-            props: ['id', 'size', 'msg', 'test'],
-            data: function() {
-                return {
-                    tamanio: this.size
-                };
-            },
+            props: ['id', 'size'],
             methods: {
                 expand: function() {
-                    //this.tamanio++;
+                    this.size.val++;
                     this.$emit('expand', this.id);
                 },
                 contract: function() {
-                    this.tamanio--;
+                    this.size.val--;
+                    this.$emit('contract', this.id);
+                }
+            },
+            computed: {
+                classSize: function() {
+                    return {
+                        'col-md-4': this.size.val == 1,
+                        'col-md-8': this.size.val == 2,
+                        'col-md-12': this.size.val == 3
+                    }
                 }
             }
         };
@@ -54,24 +71,27 @@
             template: '#rowTemp',
             data: function() {
                 return {
-                    placeholders: 3,
-                    sizes: [1, 2, 3],
-                    msg: "Shit boy",
-                    test: {
-                        comp1: 1,
-                        comp2: 2,
-                        comp3: 3
-                    }
+                    sizes: [
+                        {val: 1, showExpand: true},
+                        {val: 1, showExpand: true},
+                        {val: 1, showExpand: false}
+                    ]
                 }
             },
             methods: {
-                broadcastSizes: function(id) {
-                    this.test.comp1 = 5;
-                    //this.msg = id;
-                    //console.log(id);
-
-                    //this.sizes[id-1]++;
-                    //this.$emit('contract', id);
+                updateExpanded: function(id) {
+                    if(this.sizes[id].val !== 0) {
+                        this.sizes[id].val--;
+                    } else {
+                        this.sizes[id+1].val--;
+                    }
+                },
+                updateContracted: function(id) {
+                    if(this.sizes[id+1].val === 0 ) {
+                        this.sizes[id+1].val++;
+                    } else {
+                        this.sizes[id].val++;
+                    }
                 }
             },
             components: {
