@@ -10,10 +10,16 @@
     <div class="container">
         <div class="row">
             <div id="formTemp" class="col-md-10">
-                <row-temp v-for="i in rows"></row-temp>
+                <row-temp v-for="i in rows" v-on:addrow="addNewRow"></row-temp>
             </div>
             <div class="col-md-2">
                 Html Components
+                <label id="draggable-label" class="form-control" draggable="true" ondragstart="drag(event)">Label</label>
+                <input type="radio" id="draggable-input-radio" class="form-control" draggable="true" ondragstart="drag(event)">
+                <input type="text" id="draggable-input-text" class="form-control" draggable="true" ondragstart="drag(event)">
+                <input type="password" id="draggable-input-password" class="form-control" placeholder="Password">
+                <textarea></textarea>
+                <button id="draggable-button" class="btn btn-default" draggable="true" ondragstart="drag(event)">Button</button>
             </div>
         </div>
     </div>
@@ -21,7 +27,7 @@
     <template id="rowTemp">
         <div class="col-md-12">
             <h3>RowTemp</h3>
-            <row-comp v-for="n in sizes.length" :id="n" :size="sizes[n-1]" v-on:expand="updateExpanded" v-on:contract="updateContracted"></row-comp>
+            <row-comp v-for="n in sizes.length" :id="n" :size="sizes[n-1]" :template="template" v-on:expand="updateExpanded" v-on:contract="updateContracted" v-on:drop="addRow"></row-comp>
         </div>
     </template>
 
@@ -30,22 +36,63 @@
             <div class="panel panel-default">
                 <div class="panel-heading clearfix">
                     RowComp {{ id }}
-                    <button v-if="size.showExpand" v-on:click="expand" class="pull-right btn btn-default">
+                    <button v-if="showExpand()" v-on:click="expand" class="pull-right btn btn-default">
                         <span class="glyphicon glyphicon-arrow-right"></span>
                     </button>
-                    <button v-on:click="contract" class="pull-right btn btn-default">
+                    <button v-if="showContract()" v-on:click="contract" class="pull-right btn btn-default">
                         <span class="glyphicon glyphicon-arrow-left"></span>
                     </button>
                 </div>
-                <div class="panel-body">Drag items here</div>
+                <div class="panel-body" v-on:dragover="allowDrop" v-on:drop="drop">Drag items here</div>
             </div>
         </div>
     </template>
+
+    <script type="text/x-template" id="modal-template">
+      <transition name="modal">
+        <div class="modal-mask">
+          <div class="modal-wrapper">
+            <div class="modal-container">
+
+              <div class="modal-header">
+                <slot name="header">
+                  default header
+                </slot>
+              </div>
+
+              <div class="modal-body">
+                <slot name="body">
+                  default body
+                </slot>
+              </div>
+
+              <div class="modal-footer">
+                <slot name="footer">
+                  default footer
+                  <button class="modal-default-button" @click="$emit('close')">
+                    OK
+                  </button>
+                </slot>
+              </div>
+            </div>
+          </div>
+        </div>
+      </transition>
+    </script>
+
     <script src="https://cdnjs.cloudflare.com/ajax/libs/vue/2.0.1/vue.js"></script>
     <script>
+        function drag(ev) {
+            ev.dataTransfer.setData('text', ev.target.id);
+        }
+
+        Vue.component('modal', {
+            template: '#modal-template'
+        });
+
         var rowcomp = {
             template: '#rowComp',
-            props: ['id', 'size'],
+            props: ['id', 'size', 'template'],
             methods: {
                 expand: function() {
                     this.size.val++;
@@ -54,6 +101,24 @@
                 contract: function() {
                     this.size.val--;
                     this.$emit('contract', this.id);
+                },
+                showExpand: function() {
+                    return (this.id === 1 && this.template < 3) ||
+                        (this.id === 2 && this.template === 1);
+
+                },
+                showContract: function() {
+                    return this.size.val > 1;
+                },
+                allowDrop: function(ev) {
+                    ev.preventDefault();
+                },
+                drop: function(ev) {
+                    ev.preventDefault();
+                    var id = ev.dataTransfer.getData('text');
+                    var cln = document.getElementById(id).cloneNode();
+                    ev.target.appendChild(cln);
+                    this.$emit('drop');
                 }
             },
             computed: {
@@ -71,15 +136,24 @@
             template: '#rowTemp',
             data: function() {
                 return {
+                    template: 1,
+                    htmlAdded: 0,
                     sizes: [
-                        {val: 1, showExpand: true},
-                        {val: 1, showExpand: true},
-                        {val: 1, showExpand: false}
+                        {val: 1},
+                        {val: 1},
+                        {val: 1}
                     ]
                 }
             },
             methods: {
                 updateExpanded: function(id) {
+                    if(id === 1 && this.template === 1) {
+                        this.template = 2;
+                    } else if (id === 1 && this.template === 2) {
+                        this.template = 3;
+                    } else if (id === 2) {
+                        this.template = 4;
+                    }
                     if(this.sizes[id].val !== 0) {
                         this.sizes[id].val--;
                     } else {
@@ -87,10 +161,27 @@
                     }
                 },
                 updateContracted: function(id) {
-                    if(this.sizes[id+1].val === 0 ) {
+                    if(id === 1 && this.template === 2) {
+                        this.template = 1;
+                    } else if(id === 1 && this.template === 3) {
+                        this.template = 2;
+                    } else if(id === 2) {
+                        this.template = 1;
+                    }
+                    if(id === 2) {
+                        this.sizes[id].val++;
+                    } else if(this.sizes[id+1].val === 0 ) {
                         this.sizes[id+1].val++;
                     } else {
                         this.sizes[id].val++;
+                    }
+                },
+                addRow: function() {
+                    //console.log("Dropped something");
+                    this.htmlAdded++;
+                    if(this.htmlAdded === 1) {
+                        //console.log("Need to add a new row");
+                        this.$emit('addrow');
                     }
                 }
             },
@@ -102,10 +193,15 @@
         new Vue({
             el: '#formTemp',
             data: {
-                rows: 2
+                rows: 1
             },
             components: {
                 'row-temp': rowtemp
+            },
+            methods: {
+                addNewRow: function() {
+                    this.rows++;
+                }
             }
         });
     </script>
