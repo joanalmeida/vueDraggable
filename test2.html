@@ -1,33 +1,46 @@
-<!-- http://stackoverflow.com/questions/34534151/passing-data-to-components-in-vue-js -->
 <!DOCTYPE HTML>
 <html lang="en-US">
 <head>
     <meta charset="UTF-8">
     <title>Drag n drop</title>
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+    <style>
+        .dragging {
+            border: 1px dashed;
+        }
+    </style>
 </head>
 <body>
-    <div class="container">
+    <div class="container" id="formTemp">
         <div class="row">
-            <div id="formTemp" class="col-md-10">
-                <row-temp v-for="i in rows" v-on:addrow="addNewRow"></row-temp>
+            <!--div id="formTemp" class="col-md-10"-->
+            <div class="col-md-10">
+                <row-temp v-for="i in rows" :dragging="dragging" v-on:addrow="addNewRow"></row-temp>
             </div>
             <div class="col-md-2">
+                <input id="draggable-input-text" class="form-control" v-on:dragstart="drag" v-on:dragend="dragend" draggable="true">
+                <select>
+                    <option>1</option>
+                    <option>2</option>
+                </select>
+                <label>Test</label>
+            </div>
+            <!--div class="col-md-2">
                 Html Components
-                <label id="draggable-label" class="form-control" draggable="true" ondragstart="drag(event)">Label</label>
-                <input type="radio" id="draggable-input-radio" class="form-control" draggable="true" ondragstart="drag(event)">
-                <input type="text" id="draggable-input-text" class="form-control" draggable="true" ondragstart="drag(event)">
-                <input type="password" id="draggable-input-password" class="form-control" placeholder="Password">
+                <label id="draggable-label" class="form-control" draggable="true" ondragstart="drag(event, 'test')">Label</label>
+                <input type="radio" id="draggable-input-radio" class="form-control" draggable="true" ondragstart="drag(event)" ondrop="event.preventDefault()">
+                <input type="text" id="draggable-input-text" class="form-control" draggable="true" ondragstart="drag(event)" ondrop="event.preventDefault()">
+                <input type="password" id="draggable-input-password" class="form-control" placeholder="Password" draggable="true" ondragstart="drag(event)" ondrop="event.preventDefault()">
                 <textarea></textarea>
                 <button id="draggable-button" class="btn btn-default" draggable="true" ondragstart="drag(event)">Button</button>
-            </div>
+            </div-->
         </div>
     </div>
 
     <template id="rowTemp">
         <div class="col-md-12">
             <h3>RowTemp</h3>
-            <row-comp v-for="n in sizes.length" :id="n" :size="sizes[n-1]" :template="template" v-on:expand="updateExpanded" v-on:contract="updateContracted" v-on:drop="addRow"></row-comp>
+            <row-comp v-for="n in sizes.length" :dragging="dragging" :id="n" :size="sizes[n-1]" :template="template" v-on:expand="updateExpanded" v-on:contract="updateContracted" v-on:drop="addRow"></row-comp>
         </div>
     </template>
 
@@ -43,7 +56,7 @@
                         <span class="glyphicon glyphicon-arrow-left"></span>
                     </button>
                 </div>
-                <div class="panel-body" v-on:dragover="allowDrop" v-on:drop="drop">Drag items here</div>
+                <div class="panel-body" v-on:dragover="allowDrop" v-on:drop="drop" v-bind:class="{ dragging: dragging }">Drag items here</div>
             </div>
         </div>
     </template>
@@ -82,9 +95,12 @@
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/vue/2.0.1/vue.js"></script>
     <script>
-        function drag(ev) {
+        /*
+        function drag(ev, data) {
             ev.dataTransfer.setData('text', ev.target.id);
+            //ev.dataTransfer.setData('test', data);
         }
+        */
 
         Vue.component('modal', {
             template: '#modal-template'
@@ -92,7 +108,7 @@
 
         var rowcomp = {
             template: '#rowComp',
-            props: ['id', 'size', 'template'],
+            props: ['id', 'size', 'template', 'dragging'],
             methods: {
                 expand: function() {
                     this.size.val++;
@@ -115,8 +131,10 @@
                 },
                 drop: function(ev) {
                     ev.preventDefault();
+                    //console.log(ev.dataTransfer.getData('test'));
                     var id = ev.dataTransfer.getData('text');
-                    var cln = document.getElementById(id).cloneNode();
+                    //var cln = document.getElementById(id).cloneNode();
+                    var cln = document.getElementById(id);
                     ev.target.appendChild(cln);
                     this.$emit('drop');
                 }
@@ -134,6 +152,7 @@
 
         var rowtemp = {
             template: '#rowTemp',
+            props: ['dragging'],
             data: function() {
                 return {
                     template: 1,
@@ -193,7 +212,8 @@
         new Vue({
             el: '#formTemp',
             data: {
-                rows: 1
+                rows: 1,
+                dragging: false
             },
             components: {
                 'row-temp': rowtemp
@@ -201,6 +221,12 @@
             methods: {
                 addNewRow: function() {
                     this.rows++;
+                },
+                drag: function(ev, data) {
+                    this.dragging = true;
+                },
+                dragend: function() {
+                    this.dragging = false;
                 }
             }
         });
