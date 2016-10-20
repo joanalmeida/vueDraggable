@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <title>Drag n drop</title>
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+    <link rel="stylesheet" href="modal.css">
     <style>
         .dragging {
             border: 1px dashed;
@@ -18,7 +19,8 @@
                 <row-temp v-for="i in rows" :dragging="dragging" v-on:addrow="addNewRow"></row-temp>
             </div>
             <div class="col-md-2">
-                <input id="draggable-input-text" class="form-control" v-on:dragstart="drag" v-on:dragend="dragend" draggable="true">
+                <input type="text" id="draggable-input-text" class="form-control" v-on:dragstart="drag" v-on:dragend="dragend" v-on:drop.prevent draggable="true">
+                <input type="password" id="draggable-input-password" class="form-control" v-on:dragstart="drag" draggable="true">
                 <select>
                     <option>1</option>
                     <option>2</option>
@@ -46,6 +48,7 @@
 
     <template id="rowComp">
         <div v-if="size.val > 0" v-bind:class="classSize">
+            <modal-comp v-if="showModal" :type="type" v-on:close="closeModal"></modal-comp>
             <div class="panel panel-default">
                 <div class="panel-heading clearfix">
                     RowComp {{ id }}
@@ -75,14 +78,26 @@
 
               <div class="modal-body">
                 <slot name="body">
-                  default body
+                  <div>
+                    <input placeholder="label" v-model="label">
+                    <span>Required</span>
+                    <select v-model="required">
+                        <option>Yes</option>
+                        <option>No</option>
+                    </select>
+                    <span>Disabled</span>
+                    <select v-model="disabled">
+                        <option>Yes</option>
+                        <option>No</option>
+                    </select>
+                  </div>
                 </slot>
               </div>
 
               <div class="modal-footer">
                 <slot name="footer">
                   default footer
-                  <button class="modal-default-button" @click="$emit('close')">
+                  <button class="modal-default-button" @click="close">
                     OK
                   </button>
                 </slot>
@@ -101,14 +116,47 @@
             //ev.dataTransfer.setData('test', data);
         }
         */
-
+        /*
         Vue.component('modal', {
             template: '#modal-template'
         });
+        */
+
+        var modalcomp = {
+            template: '#modal-template',
+            props: ['type'],
+            data: function() {
+                return {
+                    label: '',
+                    required: '',
+                    disabled: ''
+                }
+            },
+            methods: {
+                close: function() {
+                    data = {
+                        label: this.label,
+                        required: this.required === "Yes",
+                        disabled: this.disabled === "Yes"
+                    };
+                    this.$emit('close', data);
+                    console.log('closing modal');
+                }
+            }
+        };
 
         var rowcomp = {
             template: '#rowComp',
             props: ['id', 'size', 'template', 'dragging'],
+            data: function() {
+                return {
+                    empty: true,
+                    showModal: false,
+                    type: null,
+                    element: null,
+                    me: null
+                }
+            },
             methods: {
                 expand: function() {
                     this.size.val++;
@@ -121,7 +169,6 @@
                 showExpand: function() {
                     return (this.id === 1 && this.template < 3) ||
                         (this.id === 2 && this.template === 1);
-
                 },
                 showContract: function() {
                     return this.size.val > 1;
@@ -132,10 +179,26 @@
                 drop: function(ev) {
                     ev.preventDefault();
                     //console.log(ev.dataTransfer.getData('test'));
-                    var id = ev.dataTransfer.getData('text');
-                    //var cln = document.getElementById(id).cloneNode();
-                    var cln = document.getElementById(id);
-                    ev.target.appendChild(cln);
+                    if(this.empty) {
+                        var id = ev.dataTransfer.getData('text');
+                        var cln = document.getElementById(id).cloneNode();
+                        this.type = cln.nodeName;
+                        this.showModal = true;
+                        //var cln = document.getElementById(id);
+                        this.element = cln;
+                        this.me = ev.target;
+                        //ev.target.appendChild(cln);
+                        //this.empty = false;
+                        //this.$emit('drop');
+                    }
+                },
+                closeModal: function(data) {
+                    this.showModal = false;
+                    console.log(data);
+                    //Check for type and do the necessary things
+                    this.element.placeholder = data.label;
+                    this.me.appendChild(this.element);
+                    this.empty = false;
                     this.$emit('drop');
                 }
             },
@@ -147,6 +210,9 @@
                         'col-md-12': this.size.val == 3
                     }
                 }
+            },
+            components: {
+                'modal-comp': modalcomp
             }
         };
 
@@ -223,6 +289,9 @@
                     this.rows++;
                 },
                 drag: function(ev, data) {
+                    //ev.preventDefault();
+                    console.log('Dragging');
+                    ev.dataTransfer.setData('text', ev.target.id);
                     this.dragging = true;
                 },
                 dragend: function() {
