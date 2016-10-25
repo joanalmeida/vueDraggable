@@ -14,9 +14,14 @@
 <body>
     <div class="container" id="formTemp">
         <div class="row">
+            <div class="col-md-3 col-md-offset-6">
+                <button class="btn btn-default" v-on:click="submit">Submit</button>
+            </div>
+        </div>
+        <div class="row">
             <!--div id="formTemp" class="col-md-10"-->
             <div class="col-md-10">
-                <row-temp v-for="i in rows" :dragging="dragging" v-on:addrow="addNewRow"></row-temp>
+                <row-temp v-for="i in rows" :id="i" :dragging="dragging" :send="send" v-on:addrow="addNewRow"></row-temp>
             </div>
             <div class="col-md-2">
                 <input type="text" id="draggable-input-text" class="form-control" v-on:dragstart="drag" v-on:dragend="dragend" v-on:drop.prevent draggable="true">
@@ -42,7 +47,7 @@
     <template id="rowTemp">
         <div class="col-md-12">
             <h3>RowTemp</h3>
-            <row-comp v-for="n in sizes.length" :dragging="dragging" :id="n" :size="sizes[n-1]" :template="template" v-on:expand="updateExpanded" v-on:contract="updateContracted" v-on:drop="addRow"></row-comp>
+            <row-comp v-for="n in sizes.length" :row="id" :send="send" :dragging="dragging" :id="n" :size="sizes[n-1]" :template="template" v-on:expand="updateExpanded" v-on:contract="updateContracted" v-on:drop="addRow"></row-comp>
         </div>
     </template>
 
@@ -122,6 +127,8 @@
         });
         */
 
+        var bus = new Vue({});
+
         var modalcomp = {
             template: '#modal-template',
             props: ['type'],
@@ -147,7 +154,7 @@
 
         var rowcomp = {
             template: '#rowComp',
-            props: ['id', 'size', 'template', 'dragging'],
+            props: ['id', 'size', 'template', 'dragging', 'send', 'row'],
             data: function() {
                 return {
                     empty: true,
@@ -211,6 +218,16 @@
                     }
                 }
             },
+            watch: {
+                send: function() {
+                    var d = {
+                        row: this.row,
+                        comp: this.id
+                    };
+                    bus.$emit('test', d);
+                    //console.log(this.id);
+                }
+            },
             components: {
                 'modal-comp': modalcomp
             }
@@ -218,7 +235,7 @@
 
         var rowtemp = {
             template: '#rowTemp',
-            props: ['dragging'],
+            props: ['dragging', 'send', 'id'],
             data: function() {
                 return {
                     template: 1,
@@ -279,7 +296,9 @@
             el: '#formTemp',
             data: {
                 rows: 1,
-                dragging: false
+                dragging: false,
+                send: false,
+                ajaxArray: []
             },
             components: {
                 'row-temp': rowtemp
@@ -296,7 +315,25 @@
                 },
                 dragend: function() {
                     this.dragging = false;
+                },
+                submit: function() {
+                    console.log('Submitting data');
+                    this.send = true;
+                    //this.$broadcast('test');
+                },
+                receive: function(d) {
+                    console.log(d.row + '-' + d.comp);
                 }
+            },
+            created: function() {
+                var that = this;
+                bus.$on('test', function(d) {
+                    if(that.ajaxArray[d.row]) {
+                        that.ajaxArray[d.row][d.comp] = 'info';
+                    } else {
+                        that.ajaxArray
+                    }
+                });
             }
         });
     </script>
