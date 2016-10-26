@@ -24,12 +24,9 @@
                 <row-temp v-for="i in rows" :id="i" :dragging="dragging" :send="send" v-on:addrow="addNewRow"></row-temp>
             </div>
             <div class="col-md-2">
-                <input type="text" id="draggable-input-text" class="form-control" v-on:dragstart="drag" v-on:dragend="dragend" v-on:drop.prevent draggable="true">
-                <input type="password" id="draggable-input-password" class="form-control" v-on:dragstart="drag" draggable="true">
-                <select>
-                    <option>1</option>
-                    <option>2</option>
-                </select>
+                <input type="text" id="text" class="form-control" v-on:dragstart="drag" v-on:dragend="dragend" v-on:drop.prevent draggable="true">
+                <input type="password" id="password" class="form-control" v-on:dragstart="drag" draggable="true">
+                <select></select>
                 <label>Test</label>
             </div>
             <!--div class="col-md-2">
@@ -142,6 +139,7 @@
             methods: {
                 close: function() {
                     data = {
+                        type: this.type,
                         label: this.label,
                         required: this.required === "Yes",
                         disabled: this.disabled === "Yes"
@@ -161,7 +159,8 @@
                     showModal: false,
                     type: null,
                     element: null,
-                    me: null
+                    me: null,
+                    item: null
                 }
             },
             methods: {
@@ -189,7 +188,7 @@
                     if(this.empty) {
                         var id = ev.dataTransfer.getData('text');
                         var cln = document.getElementById(id).cloneNode();
-                        this.type = cln.nodeName;
+                        this.type = id;
                         this.showModal = true;
                         //var cln = document.getElementById(id);
                         this.element = cln;
@@ -204,6 +203,8 @@
                     console.log(data);
                     //Check for type and do the necessary things
                     this.element.placeholder = data.label;
+                    this.item = data;
+                    //this.item.size = this.size.val;
                     this.me.appendChild(this.element);
                     this.empty = false;
                     this.$emit('drop');
@@ -222,7 +223,9 @@
                 send: function() {
                     var d = {
                         row: this.row,
-                        comp: this.id
+                        comp: this.id,
+                        info: this.item,
+                        size: this.size.val
                     };
                     bus.$emit('test', d);
                     //console.log(this.id);
@@ -328,10 +331,17 @@
             created: function() {
                 var that = this;
                 bus.$on('test', function(d) {
-                    if(that.ajaxArray[d.row]) {
-                        that.ajaxArray[d.row][d.comp] = 'info';
+                    var p = {
+                        size: d.size,
+                        item: d.info
+                    };
+                    if(that.ajaxArray[d.row - 1]) {
+                        that.ajaxArray[d.row - 1][d.comp - 1] = p;
                     } else {
-                        that.ajaxArray
+                        that.ajaxArray.push([p]);
+                    }
+                    if(that.ajaxArray[that.rows - 1] && (that.ajaxArray[that.rows - 1][2]) !== undefined) {
+                        console.log('Finished');
                     }
                 });
             }
